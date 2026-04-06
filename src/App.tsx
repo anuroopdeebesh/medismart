@@ -138,7 +138,23 @@ export default function App() {
                   </Box>
                   <Routes>
                     <Route path="/" element={isAdmin ? <DashboardPage data={dashboard} onRefresh={async () => setDashboard(await getDashboard())} /> : <UserDashboardPage userName={user.full_name} appointments={appointments} records={records} />} />
-                    <Route path="/patients" element={isAdmin ? <PatientsPage rows={patients} onCreate={async (patient) => { await createPatient(patient); await refreshWorkspace(); setToast('Patient created.'); }} /> : <Navigate to="/" replace />} />
+                    <Route
+                      path="/patients"
+                      element={
+                        isAdmin ? (
+                          <PatientsPage
+                            rows={patients}
+                            onCreate={async (patient) => {
+                              const created = await createPatient(patient);
+                              setPatients((prev) => [created, ...prev]);
+                              setToast('Patient created.');
+                            }}
+                          />
+                        ) : (
+                          <Navigate to="/" replace />
+                        )
+                      }
+                    />
                     <Route
                       path="/schedule"
                       element={
@@ -148,16 +164,74 @@ export default function App() {
                           patients={isAdmin ? patients : [{ id: appointments[0]?.patient_id ?? 1, full_name: user.full_name, mrn: 'SELF' }]}
                           mode={isAdmin ? 'admin' : 'user'}
                           onCreate={async (payload) => {
-                            await createAppointment(payload);
-                            await refreshWorkspace();
+                            const created = await createAppointment(payload);
+                            setAppointments((prev) => [created, ...prev]);
                             setToast(isAdmin ? 'Appointment booked.' : 'Appointment request submitted.');
                           }}
                         />
                       }
                     />
-                    <Route path="/clinical" element={isAdmin ? <ClinicalPage patients={patients} records={records} onCreate={async (payload) => { await createClinicalRecord(payload); await refreshWorkspace(); setToast('Clinical record saved.'); }} /> : <Navigate to="/" replace />} />
-                    <Route path="/billing" element={isAdmin ? <BillingPage patients={patients} invoices={invoices} payments={payments} onCreateInvoice={async (payload) => { await createInvoice(payload); await refreshWorkspace(); setToast('Invoice created.'); }} onCreatePayment={async (payload) => { await createPayment(payload); await refreshWorkspace(); setToast('Payment recorded.'); }} /> : <Navigate to="/" replace />} />
-                    <Route path="/operations" element={isAdmin ? <OperationsPage inventory={inventory} labOrders={labOrders} snapshots={operations} onCreateInventory={async (payload) => { await createInventoryItem(payload); await refreshWorkspace(); setToast('Inventory item added.'); }} /> : <Navigate to="/" replace />} />
+                    <Route
+                      path="/clinical"
+                      element={
+                        isAdmin ? (
+                          <ClinicalPage
+                            patients={patients}
+                            records={records}
+                            onCreate={async (payload) => {
+                              const created = await createClinicalRecord(payload);
+                              setRecords((prev) => [created, ...prev]);
+                              setToast('Clinical record saved.');
+                            }}
+                          />
+                        ) : (
+                          <Navigate to="/" replace />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/billing"
+                      element={
+                        isAdmin ? (
+                          <BillingPage
+                            patients={patients}
+                            invoices={invoices}
+                            payments={payments}
+                            onCreateInvoice={async (payload) => {
+                              const created = await createInvoice(payload);
+                              setInvoices((prev) => [created, ...prev]);
+                              setToast('Invoice created.');
+                            }}
+                            onCreatePayment={async (payload) => {
+                              const created = await createPayment(payload);
+                              setPayments((prev) => [created, ...prev]);
+                              setToast('Payment recorded.');
+                            }}
+                          />
+                        ) : (
+                          <Navigate to="/" replace />
+                        )
+                      }
+                    />
+                    <Route
+                      path="/operations"
+                      element={
+                        isAdmin ? (
+                          <OperationsPage
+                            inventory={inventory}
+                            labOrders={labOrders}
+                            snapshots={operations}
+                            onCreateInventory={async (payload) => {
+                              const created = await createInventoryItem(payload);
+                              setInventory((prev) => [created, ...prev]);
+                              setToast('Inventory item added.');
+                            }}
+                          />
+                        ) : (
+                          <Navigate to="/" replace />
+                        )
+                      }
+                    />
                     <Route path="/profile" element={isAdmin ? <Navigate to="/" replace /> : <UserProfilePage fullName={user.full_name} email={user.email} />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>

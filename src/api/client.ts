@@ -2,6 +2,7 @@ import { demoToken, mockAppointments, mockDashboard, mockDoctors, mockInvoices, 
 import type { Appointment, AuthToken, ClinicalRecord, DashboardPayload, DoctorOption, Invoice, InventoryItem, LabOrder, ModuleCard, OperationalSnapshot, Patient, Payment, Role, UserProfile } from '../types';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+const frontendOnlyMode = (import.meta.env.VITE_FRONTEND_ONLY ?? 'true').toLowerCase() === 'true';
 
 const loginModeKey = 'medismart_login_mode';
 const loginEmailKey = 'medismart_login_email';
@@ -29,6 +30,13 @@ export function clearLoginContext() {
 }
 
 async function request<T>(path: string, init?: RequestInit, fallback?: T): Promise<T> {
+  if (frontendOnlyMode) {
+    if (fallback !== undefined) {
+      return fallback;
+    }
+    throw new Error(`Frontend-only mode: missing fallback for ${path}`);
+  }
+
   try {
     const response = await fetch(`${baseUrl}${path}`, {
       ...init,
